@@ -1,0 +1,11 @@
+[package]
+name = "config_validator"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+tokio = { version = "*", features = ["full"] }
+redis = "*"
+serde_json = "*"
+serde = {version = "*", features = ["derive"]}
