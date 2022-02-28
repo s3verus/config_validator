@@ -8,24 +8,24 @@ use std::error::Error;
 // what's wrong? can use better form for structures?
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Http {
-    optional_resolve_to: Option<String>,
-    address: String,
+    pub optional_resolve_to: Option<String>,
+    pub address: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Tcp {
-    ip_address: String,
+    pub ip_address: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Data {
-    http: Option<Http>,
-    tcp: Option<Tcp>,
+    pub http: Option<Http>,
+    pub tcp: Option<Tcp>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Message {
-    data: Data,
+    pub data: Data,
     message: String,
     is_checked: bool,
 }
