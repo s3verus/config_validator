@@ -2,6 +2,7 @@ use crate::dao::insert_data;
 use crate::dao::Message;
 use regex::Regex;
 
+// TODO clean this..., read regex from file
 pub fn is_legal(user_input: String) -> bool {
     // check for illegal protocols:
     let re = Regex::new(r"(?i)(((ftps|gopher|telnet|nntp|file|php|phar|data|dict|sftp|ldap|tftp|mailto|news|ftp):\\*/*))").unwrap();
@@ -24,6 +25,12 @@ pub fn is_legal(user_input: String) -> bool {
     // check for illegal chars:
     let re =
         Regex::new(r"(%7B|%7D|%7C|%5C|%5E|~|%5B|%5D|%60|\[|\]|\|+|\.\.|%0a|;/?|\{|\}|\*)").unwrap();
+    if re.is_match(&user_input) {
+        return false;
+    }
+
+    // check for private ip address:
+    let re = Regex::new(r"((^10\.(([0-9][0-9]?[0-9]?)\.?){3})|(^172\.(1[6-9]|2[0-9]|3[0-1])\.(([0-9][0-9]?[0-9]?)\.?){2})|(^192\.168\.(([0-9][0-9]?[0-9]?)\.?){2})|(^127\.(([0-9][0-9]?[0-9]?)\.?){3}))").unwrap();
     if re.is_match(&user_input) {
         return false;
     }
