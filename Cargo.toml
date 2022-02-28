@@ -9,3 +9,4 @@ tokio = { version = "*", features = ["full"] }
 redis = "*"
 serde_json = "*"
 serde = {version = "*", features = ["derive"]}
+regex = "1"
