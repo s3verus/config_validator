@@ -1,40 +1,40 @@
 use crate::dao::insert_data;
 use crate::dao::Message;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
+use std::error::Error;
+use std::fs::File;
+use std::io::Read;
 
-// TODO clean this..., read regex from file
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct Rules {
+    pub illegals: Vec<String>,
+}
+
+// read regex from file
+pub fn load_rules(path: &str) -> Result<Rules, Box<dyn Error>> {
+    // Open file
+    let mut file = File::open(path)?;
+
+    // Read the file contents into a string
+    let mut s = String::new();
+    file.read_to_string(&mut s)?;
+
+    let rules: Rules = serde_json::from_str(&s).unwrap();
+
+    Ok(rules)
+}
+
 pub fn is_legal(user_input: String) -> bool {
-    // check for illegal protocols:
-    let re = Regex::new(r"(?i)(((ftps|gopher|telnet|nntp|file|php|phar|data|dict|sftp|ldap|tftp|mailto|news|ftp):\\*/*))").unwrap();
-    if re.is_match(&user_input) {
-        return false;
+    // TODO hard code!
+    let rules = load_rules("rules.json").unwrap();
+    for rule in rules.illegals {
+        // println!("{}", rule);
+        let re = Regex::new(&rule).unwrap();
+        if re.is_match(&user_input) {
+            return false;
+        }
     }
-
-    // check for localhost:
-    let re = Regex::new(r"(?i)((https|http)://)?(:(/|\\)+(0|⓪|%80%820)|localhost|(%80%820|①②⑦|⓪|0|127)(\.|%E3)?(%80%820|0|⓪){0,3}(\.|%E3)?(%80%820|0|⓪){0,3}(\.|%E3)(%80%820|%80%821|①|⓪|0|1){1,3})").unwrap();
-    if re.is_match(&user_input) {
-        return false;
-    }
-
-    // check for localhost bypass:
-    let re = Regex::new(r"(?i)(\.\.|\[+((0|⓪){1,4}|f{1,4}|:+|(1|①)?|((https|http)://)?(:(/|\\)+(0|⓪)|localhost|(⓪|0|127|①②⑦)\.?(0|⓪){0,3}\.?(0|⓪){0,3}\.(1|0|⓪|①){1,3}))*\]+)").unwrap();
-    if re.is_match(&user_input) {
-        return false;
-    }
-
-    // check for illegal chars:
-    let re =
-        Regex::new(r"(%7B|%7D|%7C|%5C|%5E|~|%5B|%5D|%60|\[|\]|\|+|\.\.|%0a|;/?|\{|\}|\*)").unwrap();
-    if re.is_match(&user_input) {
-        return false;
-    }
-
-    // check for private ip address:
-    let re = Regex::new(r"((^10\.(([0-9][0-9]?[0-9]?)\.?){3})|(^172\.(1[6-9]|2[0-9]|3[0-1])\.(([0-9][0-9]?[0-9]?)\.?){2})|(^192\.168\.(([0-9][0-9]?[0-9]?)\.?){2})|(^127\.(([0-9][0-9]?[0-9]?)\.?){3}))").unwrap();
-    if re.is_match(&user_input) {
-        return false;
-    }
-
     true
 }
 
