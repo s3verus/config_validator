@@ -40,18 +40,33 @@ pub fn psubscribe(channel: String) -> Result<(), Box<dyn Error>> {
 
         let _: () = conn
             .psubscribe(&[channel], |msg| {
-                let received: String = msg.get_payload().unwrap();
                 let channel: String = msg.get_channel().unwrap();
-                let message_obj: Message = serde_json::from_str(&received).unwrap();
+                // TODO should we check for vec len?
+                let channel: Vec<&str> = channel.split(":").collect();
+                let channel = match channel.last() {
+                    Some(last) => last.to_string(),
+                    _ => "".to_string(),
+                };
 
+                let message_obj = get_data(&channel).unwrap();
                 sanity_check(message_obj, channel);
-
                 return ControlFlow::Continue;
             })
             .unwrap();
     });
 
     Ok(())
+}
+
+pub fn get_data(key: &str) -> Result<Message, RedisError> {
+    // TODO hard code!
+    let client = redis::Client::open("redis://127.0.0.1:6379")?;
+    let mut conn = client.get_connection()?;
+    // TODO hard code!
+    let received: String = conn.get(format!("wild:{}", key))?;
+    println!("{}", received);
+    let message_obj: Message = serde_json::from_str(&received).unwrap();
+    Ok(message_obj)
 }
 
 // insert data to redis with sound: prefix
@@ -61,8 +76,7 @@ pub fn insert_data(message_obj: Message, channel: String) -> Result<(), RedisErr
     let client = redis::Client::open("redis://127.0.0.1:6379")?;
     let mut conn = client.get_connection()?;
 
-    let channel: Vec<&str> = channel.split(":").collect();
-    let key = format!("sound:{}", channel[1]);
+    let key = format!("sound:{}", channel);
     let value = serde_json::to_string(&message_obj).unwrap();
     conn.set(key, value)?;
     Ok(())
