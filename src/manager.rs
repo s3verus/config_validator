@@ -66,3 +66,38 @@ pub fn sanity_check(message: Message, channel: String) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn private_ip() {
+        let ip = String::from("192.168.90.1");
+        assert_eq!(is_legal(ip), false);
+    }
+
+    #[test]
+    fn illegal_protocols() {
+        let address = String::from("ftp://attacker.com/test");
+        assert_eq!(is_legal(address), false);
+    }
+
+    #[test]
+    fn illegal_chars() {
+        let address = String::from("https://domain.tld/[test]/home");
+        assert_eq!(is_legal(address), false);
+    }
+
+    #[test]
+    fn test_localhost() {
+        let address = String::from("http://localHost:80/test");
+        assert_eq!(is_legal(address), false);
+    }
+
+    #[test]
+    fn legal_ip() {
+        let ip = String::from("70.34.21.16");
+        assert!(is_legal(ip));
+    }
+}
