@@ -7,7 +7,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // TODO 1 hard code!
     // TODO 2 handle errors...
-    if let Err(error) = psubscribe(String::from("wild:*")) {
+    if let Err(error) = psubscribe(String::from("__key*__:wild:*")) {
         println!("{:?}", error);
         panic!("{:?}", error);
     } else {
