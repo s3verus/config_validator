@@ -1,6 +1,5 @@
 extern crate redis;
 use crate::manager::sanity_check;
-use redis::RedisError;
 use redis::{Commands, ControlFlow, PubSubCommands};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
@@ -49,7 +48,7 @@ pub fn psubscribe(channel: String) -> Result<(), Box<dyn Error>> {
                 };
 
                 let message_obj = get_data(&channel).unwrap();
-                sanity_check(message_obj, channel);
+                sanity_check(message_obj, channel).unwrap();
                 return ControlFlow::Continue;
             })
             .unwrap();
@@ -58,26 +57,26 @@ pub fn psubscribe(channel: String) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn get_data(key: &str) -> Result<Message, RedisError> {
+pub fn get_data(key: &str) -> Result<Message, Box<dyn Error>> {
     // TODO hard code!
     let client = redis::Client::open("redis://127.0.0.1:6379")?;
     let mut conn = client.get_connection()?;
     // TODO hard code!
     let received: String = conn.get(format!("wild:{}", key))?;
     println!("{}", received);
-    let message_obj: Message = serde_json::from_str(&received).unwrap();
+    let message_obj: Message = serde_json::from_str(&received)?;
     Ok(message_obj)
 }
 
 // insert data to redis with sound: prefix
-pub fn insert_data(message_obj: Message, channel: String) -> Result<(), RedisError> {
+pub fn insert_data(message_obj: Message, channel: String) -> Result<(), Box<dyn Error>> {
     // connect to redis
     // TODO hard code!
     let client = redis::Client::open("redis://127.0.0.1:6379")?;
     let mut conn = client.get_connection()?;
 
     let key = format!("sound:{}", channel);
-    let value = serde_json::to_string(&message_obj).unwrap();
+    let value = serde_json::to_string(&message_obj)?;
     conn.set(key, value)?;
     Ok(())
 }
